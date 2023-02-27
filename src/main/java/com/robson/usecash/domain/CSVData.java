@@ -1,6 +1,8 @@
 package com.robson.usecash.domain;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Entity;
@@ -11,6 +13,7 @@ import javax.persistence.Id;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
 public class CSVData {
 
     @Id
@@ -19,8 +22,8 @@ public class CSVData {
     String CNPJ;
     String NOME_FANTASIA;
     Integer DIAS_UTEIS_VECTO_BOLETO;
-    String EMAIL_COBRANÇA_1;
-    String EMAIL_COBRANÇA_2;
+    String EMAIL_COBRANCA_1;
+    String EMAIL_COBRANCA_2;
     String TIPO_MENSALIDADE;
     Integer MES_REFERENCIA;
     Integer ANO_REFERENCIA;
