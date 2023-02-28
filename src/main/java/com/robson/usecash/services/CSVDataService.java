@@ -102,6 +102,7 @@ public class CSVDataService {
             csvData.setCORREIOS_4(Double.parseDouble(replace(map.get("CORREIOS 4 - VALOR TOTAL R$"))));
             csvData.setTAXA_REGIME_ESPECIAL(Double.parseDouble(replace(map.get("TAXA DE REGIME ESPECIAL "))));
             csvData.setTOTAL_CREDITO_ADQUIRIDO(Double.parseDouble(replace(map.get("TOTAL DE CRÉDITO ADQUIRIDO"))));
+            csvData.setSTATUS(csvData.getCNPJ().contains("invalido") ? "ERRO": "pendente");
             csvDataList.add(csvData);
         }
 
