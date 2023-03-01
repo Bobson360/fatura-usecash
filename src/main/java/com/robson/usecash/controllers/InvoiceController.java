@@ -21,7 +21,7 @@ public class InvoiceController {
 	
 	@GetMapping("/gerar/{id}")
 	public ResponseEntity<?> generateInvoice(@PathVariable int id) {
-		return invoiceService.getRegistry(id);
+		return invoiceService.calculateInvoice(id);
 	}
 	
 	@PostMapping("/gerar")
