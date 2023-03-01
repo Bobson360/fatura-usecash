@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import com.robson.usecash.domain.CSVData;
-import com.robson.usecash.repositories.CSVDataRepository;
+import com.robson.usecash.domain.Registry;
+import com.robson.usecash.repositories.RegistryRepository;
 
-@Component
-public class CSVDataService {
+@Service
+public class RegistryService {
 
     @Autowired
-    private CSVDataRepository csvDataRepository;
+    private RegistryRepository csvDataRepository;
 
 
-    public List<CSVData> importarCSV(InputStream inputStream, String[] cabecalhoEsperado) throws IOException, CsvException {
+    public List<Registry> importarCSV(InputStream inputStream, String[] cabecalhoEsperado) throws IOException, CsvException {
         InputStreamReader reader = new InputStreamReader(inputStream, "UTF-8");
         CSVReader csvReader = new CSVReader(reader);
 
@@ -75,11 +75,11 @@ public class CSVDataService {
     }
 
 
-    public List<CSVData> salvarCsvEntity(List<Map<String, String>> data) {
+    public List<Registry> salvarCsvEntity(List<Map<String, String>> data) {
 // popule a lista de dados aqui
-        List<CSVData> csvDataList = new ArrayList<CSVData>();
+        List<Registry> csvDataList = new ArrayList<Registry>();
         for (Map<String, String> map : data) {
-            CSVData csvData = new CSVData();
+            Registry csvData = new Registry();
             csvData.setCNPJ(map.get("CNPJ (apenas os números)"));
             csvData.setNOME_FANTASIA(map.get("NOME FANTASIA"));
             csvData.setDIAS_UTEIS_VECTO_BOLETO(Integer.parseInt(replace(map.get("NRO DE DIAS UTEIS PARA VECTO DO BOLETO"))));

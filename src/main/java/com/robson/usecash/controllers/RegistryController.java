@@ -1,9 +1,12 @@
 package com.robson.usecash.controllers;
 
-import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvException;
-import com.robson.usecash.domain.CSVData;
-import com.robson.usecash.services.CSVDataService;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,21 +16,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
+import com.robson.usecash.domain.Registry;
+import com.robson.usecash.services.RegistryService;
 
 @RestController
 @RequestMapping("/file")
-public class CSVDataController {
+public class RegistryController {
 
     @Autowired
-    CSVDataService csvService;
+    RegistryService csvService;
 
 
     @PostMapping("/upload")
-    public ResponseEntity<List<CSVData>> salvarClientes(@RequestParam("file") MultipartFile arquivo) throws IOException, CsvException {
+    public ResponseEntity<Map<String, Object>> registriesUpload(@RequestParam("file") MultipartFile arquivo) throws IOException, CsvException {
 
         String[] cabecalhoEsperado = { "ID DA EMPRESA", "CNPJ (apenas os números)", "NOME FANTASIA",
                 "NRO DE DIAS UTEIS PARA VECTO DO BOLETO", "EMAIL COBRANÇA 1", "EMAIL COBRANÇA 2", "TIPO DE MENSALIDADE",
@@ -38,17 +41,29 @@ public class CSVDataController {
                 "TAXA DE REGIME ESPECIAL ", "TOTAL DE CRÉDITO ADQUIRIDO",
         };
 
-        // Processar o arquivo CSV e salvar os clientes no banco de dados
-        return ResponseEntity.ok(csvService.importarCSV(arquivo.getInputStream(), cabecalhoEsperado));
+        
+        /*
+         * inserir tratamento para registros com erro, não contabilizar como sucesso
+         */
+        
+        List<Registry> dadosImportados = csvService.importarCSV(arquivo.getInputStream(), cabecalhoEsperado);
+        Map<String, Object> response = new HashMap<>();
+        response.put("registrosImportados", dadosImportados);
+        response.put("quantidade", dadosImportados.size());
+        return ResponseEntity.ok().body(response);
     }
     
     @GetMapping("/model")
-    public void exportarCabecalhoCsv(HttpServletResponse response) throws IOException {
+    public void getCsvModel(HttpServletResponse response) throws IOException {
         // define o cabeçalho da resposta
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=\"model.csv\"");
 
-        // escreve o cabeçalho como CSV no corpo da resposta
+        /* 
+         * escreve o cabeçalho como CSV no corpo da resposta
+         * 
+         * Implementação possivel, recuperar os dados do banco para gerar o modelo
+         */
         try (CSVWriter writer = new CSVWriter(response.getWriter())) {
         	
         	String[] header = {

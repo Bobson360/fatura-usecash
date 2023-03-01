@@ -1,20 +1,27 @@
 package com.robson.usecash.domain;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
-public class CSVData {
+public class Registry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,5 +48,14 @@ public class CSVData {
     Double TAXA_REGIME_ESPECIAL;
     Double TOTAL_CREDITO_ADQUIRIDO;
     String STATUS;
+    
+//    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "data_criacao")
+    private LocalDateTime dataCriacao;
+
+    @PrePersist
+    public void prePersist() {
+        dataCriacao = LocalDateTime.now(ZoneId.systemDefault());
+    }
 
 }
