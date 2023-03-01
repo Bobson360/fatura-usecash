@@ -28,7 +28,6 @@ public class RegistryService {
         InputStreamReader reader = new InputStreamReader(inputStream, "UTF-8");
         CSVReader csvReader = new CSVReader(reader);
 
-        Map<String, List<String>> data = new LinkedHashMap<String, List<String>>();
         List<String> header;
 
 
@@ -61,9 +60,6 @@ public class RegistryService {
                     data2.add(lista2);
                 else
                     data2.add(lista2);
-//                c.setAll(data2);
-//                System.out.println(c.toString());
-//			System.out.println(data2);
             }
         }
         csvReader.close();
@@ -71,7 +67,6 @@ public class RegistryService {
 
 
         // Fecha o arquivo CSV
-//        salvarCsvEntity(data);
     }
 
 
@@ -184,7 +179,6 @@ public class RegistryService {
 
     public String replace(String input) {
         return  input.replaceAll("[^\\d,.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d,.]+", "").replace(",", ".");
-//        return  input.replaceAll("[^\\d.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d.]+", "");
     }
 }
 

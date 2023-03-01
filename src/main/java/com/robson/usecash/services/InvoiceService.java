@@ -3,7 +3,6 @@ package com.robson.usecash.services;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.robson.usecash.domain.Invoice;
 import com.robson.usecash.domain.Registry;
 import com.robson.usecash.repositories.InvoiceRepository;
 import com.robson.usecash.repositories.RegistryRepository;
@@ -24,14 +24,14 @@ public class InvoiceService {
 	InvoiceRepository invoiceRepository;
 	
 	@Autowired
-	RegistryRepository csvDataRepository;
+	RegistryRepository registryRepository;
 	
 	public void getInvoice(int id) {
 		invoiceRepository.findById((long) id);
 	}
 	
 	public ResponseEntity<?> getRegistry(int id) {
-		 Optional<Registry> registry =  csvDataRepository.findById((long) id);
+		 Optional<Registry> registry =  registryRepository.findById((long) id);
 
 		    if (registry.isPresent()) {
 		        return ResponseEntity.ok(registry.get());
@@ -47,17 +47,17 @@ public class InvoiceService {
 	
 	public ResponseEntity<?> calculateInvoice(int id) {
 		
-		 Map<String, Object> response = new HashMap<>();
-		Optional<Registry> registry = csvDataRepository.findById((long) id);
+		Optional<Registry> registry_found = registryRepository.findById((long) id);
+		Registry registry = registry_found.get();
 		
-		Double REGIME_ESPECIAL = registry.get().getTAXA_REGIME_ESPECIAL() * registry.get().getTOTAL_CREDITO_ADQUIRIDO();
-		Double CORREIOS = registry.get().getCORREIOS_1()+registry.get().getCORREIOS_2()+registry.get().getCORREIOS_3()+registry.get().getCORREIOS_4();
-		Double TERMO = (registry.get().getVALOR_UNITARIO_TERMO_ADESAO() * registry.get().getQTDE_TERMOS_CANCELADOS()) + registry.get().getQTDE_TERMOS_EMITIDOS();
-		Double EMISSAO_CARTAO = registry.get().getVALOR_UNITARIO_EMISSAO_CARTAO() * registry.get().getQTDE_CARTAO_EMITIDOS();
-		Double MENSALIDADE = registry.get().getQTDE_LOJA() * registry.get().getVALOR_MENSALIDADE();
+		Double REGIME_ESPECIAL = registry.getTAXA_REGIME_ESPECIAL() * registry.getTOTAL_CREDITO_ADQUIRIDO();
+		Double CORREIOS = registry.getCORREIOS_1()+registry.getCORREIOS_2()+registry.getCORREIOS_3()+registry.getCORREIOS_4();
+		Double TERMO = (registry.getVALOR_UNITARIO_TERMO_ADESAO() * registry.getQTDE_TERMOS_CANCELADOS()) + registry.getQTDE_TERMOS_EMITIDOS();
+		Double EMISSAO_CARTAO = registry.getVALOR_UNITARIO_EMISSAO_CARTAO() * registry.getQTDE_CARTAO_EMITIDOS();
+		Double MENSALIDADE = registry.getQTDE_LOJA() * registry.getVALOR_MENSALIDADE();
 		
 		Double FATURA = REGIME_ESPECIAL+CORREIOS+TERMO+EMISSAO_CARTAO+MENSALIDADE;
-		LocalDate DUE_DATE = calcDueDate(registry.get().getDIAS_UTEIS_VECTO_BOLETO());
+		LocalDate DUE_DATE = calcDueDate(registry.getDIAS_UTEIS_VECTO_BOLETO());
 		/*
 		 * ok: obter dados
 		 *
@@ -79,17 +79,30 @@ public class InvoiceService {
 		 * 
 		 * emitir fatura
 		 */
+		if(FATURA > 25000) {
+			registry.setSTATUS("BLOQUEADO");
+			
+	        Map<String, Object> error = new LinkedHashMap<>();
+	        error.put("registry_id", id);
+	        error.put("msg", "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
+	        error.put("status", HttpStatus.BAD_REQUEST);
+	        error.put("code", HttpStatus.BAD_REQUEST.value());
+	        error.put("registry", registryRepository.save(registry));
+			System.out.println("Fatura superior há R$ 25.000,00 registro bloqueado");
+			return ResponseEntity.badRequest().body(error);
+		}
 		
-		response.put("Valor total da fatura", FATURA);
-		response.put("Mensalidade Plataforma ", MENSALIDADE);
-		response.put("Emissão de cartão", EMISSAO_CARTAO);
-		response.put("emissão termo de adesão", TERMO);
-		response.put("Taxa de regime especial", REGIME_ESPECIAL);
+		Invoice invoice = new Invoice();
+		invoice.setVALOR_TOTAL_FINAL_FATURA(FATURA);
+		invoice.setTOTAL_MENSALIDADE(MENSALIDADE);
+		invoice.setTOTAL_PAGAR_EMISSAO_CARTAO(EMISSAO_CARTAO);
+		invoice.setTOTAL_PAGAR_TERMO(TERMO);
+		invoice.setTOTAL_PAGAR_CORREIOS(CORREIOS);
+		invoice.setTOTAL_PAGAR_REGIME_ESPECIAL(REGIME_ESPECIAL);
+		invoice.setDATA_VECTO_FATURA_COBRANCA(DUE_DATE);
 		
-		
-		
-		 if (registry.isPresent()) {
-				return ResponseEntity.ok().body(response);
+		 if (registry_found.isPresent()) {
+				return ResponseEntity.ok().body(invoiceRepository.save(invoice));
 		    } else {
 		        Map<String, Object> error = new LinkedHashMap<>();
 		        error.put("registry_id", id);
@@ -113,9 +126,7 @@ public class InvoiceService {
 		            }
 		        }
 
-		        System.out.println("End date: " + date);
 		        return date;
 		    }
-	 
 
 }

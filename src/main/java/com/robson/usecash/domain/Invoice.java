@@ -1,7 +1,8 @@
 package com.robson.usecash.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,9 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
 @Getter
 @Setter
 @Entity
@@ -27,9 +27,9 @@ public class Invoice {
     Double TOTAL_PAGAR_EMISSAO_CARTAO;
     Double TOTAL_MENSALIDADE;
     Double VALOR_TOTAL_FINAL_FATURA;
-    Date DATA_VECTO_FATURA_COBRANCA;
+    LocalDate DATA_VECTO_FATURA_COBRANCA;
     
-    @Column(name = "data_criacao")
+    @Column(name = "created_at")
     private LocalDateTime dataCriacao;
 
     @PrePersist

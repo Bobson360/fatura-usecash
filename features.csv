@@ -14,11 +14,11 @@
 13,backend,marcar registros como pendente,✓,✓
 13,backend,download modelo,✓,✓
 14,backend,não permitir emitir 2 faturas iguais para mes/ano + cnpj + valor total,,✓
-15,backend,bloquear cobrança superior há R$ 25.000,,✓
+15,backend,bloquear cobrança superior há R$ 25.000,✓,✓
 16,backend,emitir fatura,✓,✓
 17,backend,emitir faturas,,✓
 18,backend,validar duplicidade,,✓
-19,backend,validar validar cobrança =! 0,,✓
+19,frontend,validar validar cobrança =! 0,,✓
 20,backend,obter registro,✓,✓
 21,backend,testes,,
 22,backend,data de vencimento fatura,✓,✓
