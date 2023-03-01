@@ -1,28 +1,27 @@
 package com.robson.usecash.services;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
-import com.robson.usecash.domain.CSVData;
-import com.robson.usecash.domain.User;
-import com.robson.usecash.repositories.CSVDataRepository;
-import com.robson.usecash.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
+import com.robson.usecash.domain.CSVData;
+import com.robson.usecash.repositories.CSVDataRepository;
 
 @Component
 public class CSVDataService {
 
     @Autowired
     private CSVDataRepository csvDataRepository;
-
-
-    @Autowired
-    private UserRepository userRepository;
 
 
     public List<CSVData> importarCSV(InputStream inputStream, String[] cabecalhoEsperado) throws IOException, CsvException {

@@ -1,0 +1,20 @@
+#,segmento,descrição,requisito minimo,obrigatorio
+1,backend,startartar o projeto spring,✓,✓
+2,backend,criar rota de recebimento de arquivo,✓,✓
+3,backend,ler arquivo,✓,✓
+4,backend,validar colunas com o template,✓,✓
+5,backend,ler todos os registros,✓,✓
+6,backend,criar rota para criação de novo template,,
+7,backend,buscar o template no banco,,
+8,backend,validar o cnpj,✓,✓
+9,backend,marcar cnpj invalido,✓,✓
+10,backend,remover dados e inserir msg p/ cnpj invalido,✓,✓
+11,backend,salvar cada registro no banco,✓,✓
+12,backend,incerir campos data criacao hora criacao,,✓
+13,backend,marcar registros como pendente,✓,✓
+13,backend,download modelo,✓,✓
+15,backend,não permitir emitir 2 faturas iguais para mes/ano + cnpj + valor total,,✓
+16,backend,bloquear cobrança superior há R$ 25.000,,✓
+17,backend,emitir cobrança,,✓
+
+14,backend,testes,,
