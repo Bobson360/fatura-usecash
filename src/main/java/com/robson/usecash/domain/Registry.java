@@ -49,7 +49,6 @@ public class Registry {
     Double TOTAL_CREDITO_ADQUIRIDO;
     String STATUS;
     
-//    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;
 

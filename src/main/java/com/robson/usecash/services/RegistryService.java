@@ -183,7 +183,8 @@ public class RegistryService {
     }
 
     public String replace(String input) {
-        return  input.replaceAll("[^\\d.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d.]+", "");
+        return  input.replaceAll("[^\\d,.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d,.]+", "").replace(",", ".");
+//        return  input.replaceAll("[^\\d.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d.]+", "");
     }
 }
 
