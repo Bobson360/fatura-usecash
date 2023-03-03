@@ -3,8 +3,9 @@ package com.robson.usecash.services;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.robson.usecash.domain.Invoice;
 import com.robson.usecash.domain.Registry;
 import com.robson.usecash.repositories.InvoiceRepository;
 import com.robson.usecash.repositories.RegistryRepository;
@@ -24,79 +26,48 @@ public class InvoiceService {
 	InvoiceRepository invoiceRepository;
 	
 	@Autowired
-	RegistryRepository csvDataRepository;
+	RegistryRepository registryRepository;
 	
 	public void getInvoice(int id) {
 		invoiceRepository.findById((long) id);
 	}
 	
-	public ResponseEntity<?> getRegistry(int id) {
-		 Optional<Registry> registry =  csvDataRepository.findById((long) id);
-
-		    if (registry.isPresent()) {
-		        return ResponseEntity.ok(registry.get());
-		    } else {
-		        Map<String, Object> error = new LinkedHashMap<>();
-		        error.put("registry_id", id);
-		        error.put("msg", "error, registry not found!");
-		        error.put("status", HttpStatus.NOT_FOUND);
-		        error.put("code", HttpStatus.NOT_FOUND.value());
-		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-		    }
-	}
-	
-	public ResponseEntity<?> calculateInvoice(int id) {
+	public ResponseEntity<?> generateInvoice(long id) {
+		Optional<Registry> registry_found = registryRepository.findById(id);
+		Registry registry = registry_found.get();
 		
-		 Map<String, Object> response = new HashMap<>();
-		Optional<Registry> registry = csvDataRepository.findById((long) id);
-		
-		Double REGIME_ESPECIAL = registry.get().getTAXA_REGIME_ESPECIAL() * registry.get().getTOTAL_CREDITO_ADQUIRIDO();
-		Double CORREIOS = registry.get().getCORREIOS_1()+registry.get().getCORREIOS_2()+registry.get().getCORREIOS_3()+registry.get().getCORREIOS_4();
-		Double TERMO = (registry.get().getVALOR_UNITARIO_TERMO_ADESAO() * registry.get().getQTDE_TERMOS_CANCELADOS()) + registry.get().getQTDE_TERMOS_EMITIDOS();
-		Double EMISSAO_CARTAO = registry.get().getVALOR_UNITARIO_EMISSAO_CARTAO() * registry.get().getQTDE_CARTAO_EMITIDOS();
-		Double MENSALIDADE = registry.get().getQTDE_LOJA() * registry.get().getVALOR_MENSALIDADE();
-		
+		Double REGIME_ESPECIAL = registry.getTAXA_REGIME_ESPECIAL() * registry.getTOTAL_CREDITO_ADQUIRIDO();
+		Double CORREIOS = registry.getCORREIOS_1()+registry.getCORREIOS_2()+registry.getCORREIOS_3()+registry.getCORREIOS_4();
+		Double TERMO = (registry.getVALOR_UNITARIO_TERMO_ADESAO() * registry.getQTDE_TERMOS_CANCELADOS()) + registry.getQTDE_TERMOS_EMITIDOS();
+		Double EMISSAO_CARTAO = registry.getVALOR_UNITARIO_EMISSAO_CARTAO() * registry.getQTDE_CARTAO_EMITIDOS();
+		Double MENSALIDADE = registry.getQTDE_LOJA() * registry.getVALOR_MENSALIDADE();
 		Double FATURA = REGIME_ESPECIAL+CORREIOS+TERMO+EMISSAO_CARTAO+MENSALIDADE;
-		LocalDate DUE_DATE = calcDueDate(registry.get().getDIAS_UTEIS_VECTO_BOLETO());
-		/*
-		 * ok: obter dados
-		 *
-		 * calcular valor total
-		 * 		VALOR TOTAL FINAL FATURA:
-		 * 			OK:	TOTAL A PAGAR REGIME ESPECIAL R$: TAXA DE REGIME ESPECIAL	 *	TOTAL DE CRÉDITO ADQUIRIDO
-		 * 			+
-		 * 			TOTAL A PAGAR CORREIOS R$: CORREIOS 1 - VALOR TOTAL R$	 +	CORREIOS 2 - VALOR TOTAL R$	 +	CORREIOS 3 - VALOR TOTAL R$  +	CORREIOS 4 - VALOR TOTAL R$
-		 * 			+
-		 * 			TOTAL A PAGAR TERMO: (VALOR UNITARIO TERMO DE ADESAO   * 	QTDE DE TERMOS CANCELADOS)   +	QTDE DE TERMOS EMITIDOS
-		 * 			+
-		 * 			TOTAL A PAGAR EMISSAO DE CARTAO: VALOR  UNITARIO EMISSAO CARTÃO  *	QTDE CARTAO EMITIDOS 
-		 * 			+
-		 * 			TOTAL DA MENSALIDADE R$: QTDE DE LOJA  *	VALOR MENSALIDADE
-		 * 			
-		 * Calcular data de vencimento
-		 * 			 
-		 * checar duplicidade
-		 * 
-		 * emitir fatura
-		 */
+		LocalDate DUE_DATE = calcDueDate(registry.getDIAS_UTEIS_VECTO_BOLETO());
 		
-		response.put("Valor total da fatura", FATURA);
-		response.put("Mensalidade Plataforma ", MENSALIDADE);
-		response.put("Emissão de cartão", EMISSAO_CARTAO);
-		response.put("emissão termo de adesão", TERMO);
-		response.put("Taxa de regime especial", REGIME_ESPECIAL);
+		if(checkDuplicateInvoice(FATURA, DUE_DATE, registry.getCNPJ()))
+			return errorReturn(HttpStatus.BAD_REQUEST, "There is already an invoice with the same value month and cnpj.");
+		
+		if(FATURA > 25000) {
+			registry.setSTATUS("BLOQUEADO");
+			return errorReturn(HttpStatus.BAD_REQUEST, "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
+		} else
+			registry.setSTATUS("PROCESSADO");
 		
 		
+		Invoice invoice = new Invoice();
+		invoice.setRegistry(registry);
+		invoice.setValorTotalFatura(FATURA);
+		invoice.setTotalMensalidade(MENSALIDADE);
+		invoice.setTotalPagarEmissaoCartao(EMISSAO_CARTAO);
+		invoice.setTotalPAgarTermo(TERMO);
+		invoice.setTotalPagarCorreios(CORREIOS);
+		invoice.setTotalPagarRegimeEspecial(REGIME_ESPECIAL);
+		invoice.setDataVencimentoFatura(DUE_DATE);
 		
-		 if (registry.isPresent()) {
-				return ResponseEntity.ok().body(response);
+		 if (registry_found.isPresent()) {
+				return ResponseEntity.ok().body(invoiceRepository.save(invoice));
 		    } else {
-		        Map<String, Object> error = new LinkedHashMap<>();
-		        error.put("registry_id", id);
-		        error.put("msg", "error, registry not found!");
-		        error.put("status", HttpStatus.NOT_FOUND);
-		        error.put("code", HttpStatus.NOT_FOUND.value());
-		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+		        return errorReturn(HttpStatus.NOT_FOUND, "error, registry not found!");
 		    }
 	}
 	
@@ -113,9 +84,27 @@ public class InvoiceService {
 		            }
 		        }
 
-		        System.out.println("End date: " + date);
 		        return date;
 		    }
 	 
+	 public boolean checkDuplicateInvoice(Double valorTotalFinalFatura, LocalDate dataVectoFaturaCobranca, String cnpj) {
+		 return invoiceRepository.findByValorTotalFaturaAndDataVencimentoFaturaAndRegistry_CNPJ(valorTotalFinalFatura, dataVectoFaturaCobranca, cnpj).size() > 0;
+	 }
+	 
+	 public ResponseEntity<?> errorReturn(HttpStatus statusCode, String message) {
+		   Map<String, Object> error = new LinkedHashMap<>();
+	        error.put("msg", message);
+	        error.put("status", statusCode);
+	        error.put("code", statusCode.value());
+	        return ResponseEntity.status(statusCode).body(error);
+	 }
 
+	public List<ResponseEntity<?>> generateInvoice() {
+		  List<ResponseEntity<?>> responseEntities = new ArrayList<>();
+		List<Long> ids = registryRepository.findRegistryIdsWithoutInvoice();
+		ids.forEach(id -> {
+			responseEntities.add(generateInvoice(id));
+		});
+		return responseEntities;
+	}
 }
