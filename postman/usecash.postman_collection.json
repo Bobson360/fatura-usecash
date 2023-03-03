@@ -1,0 +1,148 @@
+{
+	"info": {
+		"_postman_id": "ce0c68ec-071e-489c-8e28-aa3584f9b653",
+		"name": "usecash",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4838377"
+	},
+	"item": [
+		{
+			"name": "Upload File",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/bobso/Desktop/DESAFIO  FATURA COBRANCA MENSALIDADE E SERVICOS TRADE MODELO _mes_ano_ - JAN.csv"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/file/upload",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"file",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download model",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "gerar fatura",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/fatura/gerar/54",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"fatura",
+						"gerar",
+						"54"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "gerar faturas",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "1,2,3",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/fatura/gerar",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"fatura",
+						"gerar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update fatura",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/fatura/54",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"fatura",
+						"54"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "index",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "gerar pdf",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/fatura/gerar/pdf/2",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"fatura",
+						"gerar",
+						"pdf",
+						"2"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
