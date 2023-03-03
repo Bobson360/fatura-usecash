@@ -30,23 +30,7 @@ public class InvoiceService {
 		invoiceRepository.findById((long) id);
 	}
 	
-	public ResponseEntity<?> getRegistry(int id) {
-		 Optional<Registry> registry =  registryRepository.findById((long) id);
-
-		    if (registry.isPresent()) {
-		        return ResponseEntity.ok(registry.get());
-		    } else {
-		        Map<String, Object> error = new LinkedHashMap<>();
-		        error.put("registry_id", id);
-		        error.put("msg", "error, registry not found!");
-		        error.put("status", HttpStatus.NOT_FOUND);
-		        error.put("code", HttpStatus.NOT_FOUND.value());
-		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-		    }
-	}
-	
 	public ResponseEntity<?> calculateInvoice(int id) {
-		
 		Optional<Registry> registry_found = registryRepository.findById((long) id);
 		Registry registry = registry_found.get();
 		
@@ -55,61 +39,33 @@ public class InvoiceService {
 		Double TERMO = (registry.getVALOR_UNITARIO_TERMO_ADESAO() * registry.getQTDE_TERMOS_CANCELADOS()) + registry.getQTDE_TERMOS_EMITIDOS();
 		Double EMISSAO_CARTAO = registry.getVALOR_UNITARIO_EMISSAO_CARTAO() * registry.getQTDE_CARTAO_EMITIDOS();
 		Double MENSALIDADE = registry.getQTDE_LOJA() * registry.getVALOR_MENSALIDADE();
-		
 		Double FATURA = REGIME_ESPECIAL+CORREIOS+TERMO+EMISSAO_CARTAO+MENSALIDADE;
 		LocalDate DUE_DATE = calcDueDate(registry.getDIAS_UTEIS_VECTO_BOLETO());
-		/*
-		 * ok: obter dados
-		 *
-		 * calcular valor total
-		 * 		VALOR TOTAL FINAL FATURA:
-		 * 			OK:	TOTAL A PAGAR REGIME ESPECIAL R$: TAXA DE REGIME ESPECIAL	 *	TOTAL DE CRÉDITO ADQUIRIDO
-		 * 			+
-		 * 			TOTAL A PAGAR CORREIOS R$: CORREIOS 1 - VALOR TOTAL R$	 +	CORREIOS 2 - VALOR TOTAL R$	 +	CORREIOS 3 - VALOR TOTAL R$  +	CORREIOS 4 - VALOR TOTAL R$
-		 * 			+
-		 * 			TOTAL A PAGAR TERMO: (VALOR UNITARIO TERMO DE ADESAO   * 	QTDE DE TERMOS CANCELADOS)   +	QTDE DE TERMOS EMITIDOS
-		 * 			+
-		 * 			TOTAL A PAGAR EMISSAO DE CARTAO: VALOR  UNITARIO EMISSAO CARTÃO  *	QTDE CARTAO EMITIDOS 
-		 * 			+
-		 * 			TOTAL DA MENSALIDADE R$: QTDE DE LOJA  *	VALOR MENSALIDADE
-		 * 			
-		 * Calcular data de vencimento
-		 * 			 
-		 * checar duplicidade
-		 * 
-		 * emitir fatura
-		 */
+		
+		if(checkDuplicateInvoice(FATURA, DUE_DATE, registry.getCNPJ()))
+			return errorReturn(HttpStatus.BAD_REQUEST, "There is already an invoice with the same value month and cnpj.");
+		
 		if(FATURA > 25000) {
 			registry.setSTATUS("BLOQUEADO");
-			
-	        Map<String, Object> error = new LinkedHashMap<>();
-	        error.put("registry_id", id);
-	        error.put("msg", "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
-	        error.put("status", HttpStatus.BAD_REQUEST);
-	        error.put("code", HttpStatus.BAD_REQUEST.value());
-	        error.put("registry", registryRepository.save(registry));
-			System.out.println("Fatura superior há R$ 25.000,00 registro bloqueado");
-			return ResponseEntity.badRequest().body(error);
-		}
+			return errorReturn(HttpStatus.BAD_REQUEST, "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
+		} else
+			registry.setSTATUS("PROCESSADO");
+		
 		
 		Invoice invoice = new Invoice();
-		invoice.setVALOR_TOTAL_FINAL_FATURA(FATURA);
-		invoice.setTOTAL_MENSALIDADE(MENSALIDADE);
-		invoice.setTOTAL_PAGAR_EMISSAO_CARTAO(EMISSAO_CARTAO);
-		invoice.setTOTAL_PAGAR_TERMO(TERMO);
-		invoice.setTOTAL_PAGAR_CORREIOS(CORREIOS);
-		invoice.setTOTAL_PAGAR_REGIME_ESPECIAL(REGIME_ESPECIAL);
-		invoice.setDATA_VECTO_FATURA_COBRANCA(DUE_DATE);
+		invoice.setRegistry(registry);
+		invoice.setValorTotalFatura(FATURA);
+		invoice.setTotalMensalidade(MENSALIDADE);
+		invoice.setTotalPagarEmissaoCartao(EMISSAO_CARTAO);
+		invoice.setTotalPAgarTermo(TERMO);
+		invoice.setTotalPagarCorreios(CORREIOS);
+		invoice.setTotalPagarRegimeEspecial(REGIME_ESPECIAL);
+		invoice.setDataVencimentoFatura(DUE_DATE);
 		
 		 if (registry_found.isPresent()) {
 				return ResponseEntity.ok().body(invoiceRepository.save(invoice));
 		    } else {
-		        Map<String, Object> error = new LinkedHashMap<>();
-		        error.put("registry_id", id);
-		        error.put("msg", "error, registry not found!");
-		        error.put("status", HttpStatus.NOT_FOUND);
-		        error.put("code", HttpStatus.NOT_FOUND.value());
-		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+		        return errorReturn(HttpStatus.NOT_FOUND, "error, registry not found!");
 		    }
 	}
 	
@@ -128,5 +84,16 @@ public class InvoiceService {
 
 		        return date;
 		    }
-
+	 
+	 public boolean checkDuplicateInvoice(Double valorTotalFinalFatura, LocalDate dataVectoFaturaCobranca, String cnpj) {
+		 return invoiceRepository.findByValorTotalFaturaAndDataVencimentoFaturaAndRegistry_CNPJ(valorTotalFinalFatura, dataVectoFaturaCobranca, cnpj).size() > 0;
+	 }
+	 
+	 public ResponseEntity<?> errorReturn(HttpStatus statusCode, String message) {
+		   Map<String, Object> error = new LinkedHashMap<>();
+	        error.put("msg", message);
+	        error.put("status", statusCode);
+	        error.put("code", statusCode.value());
+	        return ResponseEntity.status(statusCode).body(error);
+	 }
 }
