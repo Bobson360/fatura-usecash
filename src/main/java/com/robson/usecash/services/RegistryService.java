@@ -199,5 +199,16 @@ public class RegistryService {
 		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
 		    }
 	}
+
+
+	public List<Registry> getRegistries() {
+		System.out.println();
+		System.out.println();
+		System.out.println("Listando todos os registros");
+		System.out.println();
+		System.out.println();
+		return registryRepository.findAll();
+		
+	}
 }
 
