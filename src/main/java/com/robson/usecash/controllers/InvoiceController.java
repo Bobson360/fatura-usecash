@@ -1,5 +1,7 @@
 package com.robson.usecash.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,14 +22,13 @@ public class InvoiceController {
 	InvoiceService invoiceService;
 	
 	@GetMapping("/gerar/{id}")
-	public ResponseEntity<?> generateInvoice(@PathVariable int id) {
-		return invoiceService.calculateInvoice(id);
+	public ResponseEntity<?> generateInvoice(@PathVariable Long id) {
+		return invoiceService.generateInvoice(id);
 	}
 	
-	@PostMapping("/gerar")
-	public ResponseEntity<String> generateInvoices(@RequestBody String ids) {
-		System.out.println(ids);
-		return null;
+	@GetMapping("/gerar")
+	public List<ResponseEntity<?>> generateInvoices() {
+		return invoiceService.generateInvoice();
 	}
 	
 	@PutMapping("updade/{id}")

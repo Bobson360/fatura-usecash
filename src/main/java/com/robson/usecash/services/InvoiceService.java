@@ -3,7 +3,9 @@ package com.robson.usecash.services;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,8 +32,8 @@ public class InvoiceService {
 		invoiceRepository.findById((long) id);
 	}
 	
-	public ResponseEntity<?> calculateInvoice(int id) {
-		Optional<Registry> registry_found = registryRepository.findById((long) id);
+	public ResponseEntity<?> generateInvoice(long id) {
+		Optional<Registry> registry_found = registryRepository.findById(id);
 		Registry registry = registry_found.get();
 		
 		Double REGIME_ESPECIAL = registry.getTAXA_REGIME_ESPECIAL() * registry.getTOTAL_CREDITO_ADQUIRIDO();
@@ -96,4 +98,13 @@ public class InvoiceService {
 	        error.put("code", statusCode.value());
 	        return ResponseEntity.status(statusCode).body(error);
 	 }
+
+	public List<ResponseEntity<?>> generateInvoice() {
+		  List<ResponseEntity<?>> responseEntities = new ArrayList<>();
+		List<Long> ids = registryRepository.findRegistryIdsWithoutInvoice();
+		ids.forEach(id -> {
+			responseEntities.add(generateInvoice(id));
+		});
+		return responseEntities;
+	}
 }

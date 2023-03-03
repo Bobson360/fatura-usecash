@@ -53,5 +53,4 @@ public class Registry {
     public void prePersist() {
         dataCriacao = LocalDateTime.now(ZoneId.systemDefault());
     }
-
 }
