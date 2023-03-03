@@ -16,7 +16,7 @@
 14,backend,não permitir emitir 2 faturas iguais para mes/ano + cnpj + valor total,✓,✓
 15,backend,bloquear cobrança superior há R$ 25.000,✓,✓
 16,backend,emitir fatura,✓,✓
-17,backend,emitir faturas,,✓
+17,backend,emitir faturas,✓,✓
 19,frontend,validar validar cobrança =! 0,,✓
 20,backend,obter registro,✓,✓
 21,backend,testes,,
@@ -26,5 +26,6 @@
 25,frontend,botão para processar registro especícico,,✓
 26,frontend,botão para processar todos registros,,✓
 27,frontend,"após registro regerado, inserir botão 2ª via",,✓
-27,frontend,botão para download de arquivo csv,✓,✓
-27,frontend,"caso arquivo importado seja invalido, insetir um danger",,✓
+28,frontend,botão para download de arquivo csv,✓,✓
+29,frontend,"caso arquivo importado seja invalido, insetir um danger",,✓
+30,backend,"gerar arquivo PDF",,✓
