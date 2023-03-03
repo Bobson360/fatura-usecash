@@ -21,6 +21,7 @@
 20,backend,obter registro,✓,✓
 21,backend,testes,,
 22,backend,data de vencimento fatura,✓,✓
+31,backend,atualizar data de vencimento fatura,,✓
 23,frontend,input para upload de arquivo,,✓
 24,frontend,tabela com registro carregados,,✓
 25,frontend,botão para processar registro especícico,,✓
@@ -28,4 +29,4 @@
 27,frontend,"após registro regerado, inserir botão 2ª via",,✓
 28,frontend,botão para download de arquivo csv,✓,✓
 29,frontend,"caso arquivo importado seja invalido, insetir um danger",,✓
-30,backend,"gerar arquivo PDF",,✓
+30,backend,"gerar arquivo PDF",✓,✓

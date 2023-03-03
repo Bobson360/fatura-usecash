@@ -160,4 +160,23 @@ public class InvoiceService {
 	    return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(baos.toByteArray());
 	}
 
+	
+    public ResponseEntity<?> updateInvoiceDueDate(long id) {
+    	Invoice invoice = invoiceRepository.findById(id).get();
+
+        // Data de vencimento atual da fatura
+        LocalDate dueDate = invoice.getDataVencimentoFatura();
+
+        // Verifica se a data atual mais o número de dias úteis para o vencimento é menor do que a data de vencimento atual
+        int diasUteisVencimento = invoice.getRegistry().getDIAS_UTEIS_VECTO_BOLETO();
+        LocalDate newDueDate = calcDueDate(diasUteisVencimento);
+        System.out.println(newDueDate.isBefore(dueDate));
+        if (newDueDate.isAfter(dueDate)) {
+            // Atualiza a data de vencimento da fatura
+        	invoice.setDataVencimentoFatura(newDueDate);
+            return ResponseEntity.ok().body(invoiceRepository.save(invoice));
+        }  
+        	return errorReturn(HttpStatus.BAD_REQUEST, "Unable to update expiration date.");
+    }
+
 }

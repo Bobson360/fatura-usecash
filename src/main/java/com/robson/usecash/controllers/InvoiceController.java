@@ -39,8 +39,8 @@ public class InvoiceController {
 	}
 	
 	@PutMapping("updade/{id}")
-	public void updateDueDate(@PathVariable int id) {
-		System.out.println(id);
+	public ResponseEntity<?> updateDueDate(@PathVariable Long id) {
+		return invoiceService.updateInvoiceDueDate(id);
 	}
 
 
