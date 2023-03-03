@@ -8,8 +8,11 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.opencsv.CSVReader;
@@ -21,7 +24,7 @@ import com.robson.usecash.repositories.RegistryRepository;
 public class RegistryService {
 
     @Autowired
-    private RegistryRepository csvDataRepository;
+    private RegistryRepository registryRepository;
 
 
     public List<Registry> importarCSV(InputStream inputStream, String[] cabecalhoEsperado) throws IOException, CsvException {
@@ -49,10 +52,13 @@ public class RegistryService {
                         cnpj = validarCnpj(linha[i]);
 
                     lista2.put(cabecalhoEsperado[i],
-                            cnpj ? linha[i].length() == 0 ? "0": linha[i]
+                            cnpj ? linha[i].length() == 0 
+                            		? header.get(i).toLowerCase().contains("FANTASIA")//mantem o nome fantazio da empresa caso exista, caso contrario, sava como 0
+                            				? linha[i]: "0"
+                            					: linha[i]
                                     : header.get(i).toLowerCase().contains("cnpj")
-                                    ? "Número CNPJ invalido. Cobrança não gerada"
-                                    : "0");
+                                    	? "Número CNPJ invalido. Cobrança não gerada"
+                                    			: "0");
                 }
 
 
@@ -66,7 +72,6 @@ public class RegistryService {
         return salvarCsvEntity(data2);
 
 
-        // Fecha o arquivo CSV
     }
 
 
@@ -100,7 +105,7 @@ public class RegistryService {
             csvDataList.add(csvData);
         }
 
-        return csvDataRepository.saveAll(csvDataList);
+        return registryRepository.saveAll(csvDataList);
 
 
 
@@ -180,5 +185,19 @@ public class RegistryService {
     public String replace(String input) {
         return  input.replaceAll("[^\\d,.]+", "").isEmpty() ? "0" : input.replaceAll("[^\\d,.]+", "").replace(",", ".");
     }
+    
+	public ResponseEntity<?> getRegistry(int id) {
+		 Optional<Registry> registry =  registryRepository.findById((long) id);
+		    if (registry.isPresent()) {
+		        return ResponseEntity.ok(registry.get());
+		    } else {
+		        Map<String, Object> error = new LinkedHashMap<>();
+		        error.put("registry_id", id);
+		        error.put("msg", "error, registry not found!");
+		        error.put("status", HttpStatus.NOT_FOUND);
+		        error.put("code", HttpStatus.NOT_FOUND.value());
+		        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+		    }
+	}
 }
 
