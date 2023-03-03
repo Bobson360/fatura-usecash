@@ -58,8 +58,11 @@ public class InvoiceService {
 		if(FATURA > 25000) {
 			registry.setSTATUS("BLOQUEADO");
 			return errorReturn(HttpStatus.BAD_REQUEST, "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
-		} else
+		} else if(registry.getSTATUS().equals("ERRO"))
+			registry.setSTATUS("ERRO");
+		else
 			registry.setSTATUS("PROCESSADO");
+			
 		
 		
 		Invoice invoice = new Invoice();
@@ -162,8 +165,11 @@ public class InvoiceService {
 
 	
     public ResponseEntity<?> updateInvoiceDueDate(long id) {
-    	Invoice invoice = invoiceRepository.findById(id).get();
+    	Optional<Invoice> getInvoice = invoiceRepository.findById(id);
+    	if(getInvoice.isEmpty())
+    		return errorReturn(HttpStatus.NOT_FOUND, "Invoice not found");
 
+    	Invoice invoice = getInvoice.get();
         // Data de vencimento atual da fatura
         LocalDate dueDate = invoice.getDataVencimentoFatura();
 
