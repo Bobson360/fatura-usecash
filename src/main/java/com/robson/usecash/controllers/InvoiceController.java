@@ -23,6 +23,7 @@ public class InvoiceController {
 	
 	@GetMapping("/gerar/{id}")
 	public ResponseEntity<?> generateInvoice(@PathVariable Long id) {
+		System.out.println(id);
 		return invoiceService.generateInvoice(id);
 	}
 	
