@@ -15,7 +15,7 @@ public class Config {
 	            @Override
 	            public void addCorsMappings(CorsRegistry registry) {
 	                registry.addMapping("/file/upload")
-	                        .allowedOrigins("https://fatura-usecash-front.vercel.app")
+	                        .allowedOrigins("http://localhost:4200")
 	                        .allowedMethods("POST")
 	                        .allowCredentials(true)
 	                        .maxAge(3600);

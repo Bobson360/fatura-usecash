@@ -57,7 +57,7 @@ public class InvoiceService {
 		
 		if(FATURA > 25000) {
 			registry.setSTATUS("BLOQUEADO");
-			return errorReturn(HttpStatus.BAD_REQUEST, "billing amount exceeded the allowable limit of BRL 25,000.00. Registration has been blocked. Consult the administrator.");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(registryRepository.save(registry));
 		} else if(registry.getSTATUS().equals("ERRO"))
 			registry.setSTATUS("ERRO");
 		else
